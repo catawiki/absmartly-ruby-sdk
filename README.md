@@ -29,6 +29,10 @@ Absmartly.configure_client do |config|
   config.api_key = "YOUR-API-KEY"
   config.application = "website"
   config.environment = "development"
+  config.connect_timeout = 3.0
+  config.connection_request_timeout = 3.0
+  config.retry_interval = 0.5
+  config.max_retries = 5
 end
 ```
 
@@ -37,21 +41,50 @@ end
 | Config      | Type                                 | Required? |                 Default                 | Description                                                                                                                                                                   |
 | :---------- | :----------------------------------- | :-------: | :-------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | endpoint    | `string`                             |  &#9989;  |               `undefined`               | The URL to your API endpoint. Most commonly `"your-company.absmartly.io"`                                                                                                     |
-| apiKey      | `string`                             |  &#9989;  |               `undefined`               | Your API key which can be found on the Web Console.                                                                                                                           |
+| api_key      | `string`                             |  &#9989;  |               `undefined`               | Your API key which can be found on the Web Console.                                                                                                                           |
 | environment | `"production"` or `"development"`    |  &#9989;  |               `undefined`               | The environment of the platform where the SDK is installed. Environments are created on the Web Console and should match the available environments in your infrastructure.   |
 | application | `string`                             |  &#9989;  |               `undefined`               | The name of the application where the SDK is installed. Applications are created on the Web Console and should match the applications where your experiments will be running. |
-| retries     | `number`                             | &#10060;  |                   `5`                   | The number of retries before the SDK stops trying to connect.                                                                                                                 |
-| timeout     | `number`                             | &#10060;  |                 `3000`                  | An amount of time, in milliseconds, before the SDK will stop trying to connect.                                                                                               |
-| eventLogger | `(context, eventName, data) => void` | &#10060;  | See "Using a Custom Event Logger" below | A callback function which runs after SDK events.                                                                                                                              |
+| connect_timeout     | `number`                             | &#10060;  |                   `3.0`                   | The socket connection timeout in seconds.                                                                                                                 |
+| connection_request_timeout     | `number`                             | &#10060;  |                 `3.0`                  | The request timeout in seconds.                                                                                               |
+| retry_interval     | `number`                             | &#10060;  |                   `0.5`                   | The initial retry interval in seconds (uses exponential backoff).                                                                                                                 |
+| max_retries     | `number`                             | &#10060;  |                 `5`                  | The maximum number of retries before giving up.                                                                                               |
+| event_logger | `ContextEventLogger` | &#10060;  | See "Using a Custom Event Logger" below | A `ContextEventLogger` instance implementing `handle_event(event, data)` to receive SDK events.                                                                                                                              |
 
 ### Using a Custom Event Logger
 
 The A/B Smartly SDK can be instantiated with an event logger used for all
 contexts. In addition, an event logger can be specified when creating a
-particular context, in the `[CONTEXT_CONFIG_VARIABLE]`.
+particular context in the context config.
 
-```
-Custom Event Logger Code
+```ruby
+class MyEventLogger < ContextEventLogger
+  def handle_event(event, data)
+    case event
+    when EVENT_TYPE::EXPOSURE
+      puts "Exposure: #{data}"
+    when EVENT_TYPE::GOAL
+      puts "Goal: #{data}"
+    when EVENT_TYPE::ERROR
+      puts "Error: #{data}"
+    when EVENT_TYPE::PUBLISH
+      puts "Publish: #{data}"
+    when EVENT_TYPE::READY
+      puts "Ready: #{data}"
+    when EVENT_TYPE::REFRESH
+      puts "Refresh: #{data}"
+    when EVENT_TYPE::CLOSE
+      puts "Close"
+    end
+  end
+end
+
+Absmartly.configure_client do |config|
+  config.endpoint = "https://your-company.absmartly.io/v1"
+  config.api_key = "YOUR-API-KEY"
+  config.application = "website"
+  config.environment = "development"
+  config.event_logger = MyEventLogger.new
+end
 ```
 
 The data parameter depends on the type of event. Currently, the SDK logs the
