@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require "context"
-require "context_config"
-require "default_context_data_deserializer"
-require "default_variable_parser"
-require "default_audience_deserializer"
-require "context_data_provider"
-require "default_context_data_provider"
-require "context_event_handler"
-require "context_event_logger"
-require "scheduled_executor_service"
-require "audience_matcher"
-require "json/unit"
+require "absmartly/context"
+require "absmartly/context_config"
+require "absmartly/default_context_data_deserializer"
+require "absmartly/default_variable_parser"
+require "absmartly/default_audience_deserializer"
+require "absmartly/context_data_provider"
+require "absmartly/default_context_data_provider"
+require "absmartly/context_event_handler"
+require "absmartly/context_event_logger"
+require "absmartly/scheduled_executor_service"
+require "absmartly/audience_matcher"
+require "absmartly/json/unit"
 require "logger"
 
-RSpec.describe Context do
+RSpec.describe Absmartly::Context do
   let(:units) {
     {
       session_id: "e791e240fcd3df7d238cfc285f475e8152fcc0ec",
@@ -61,15 +61,15 @@ RSpec.describe Context do
   }
   let(:publish_units) {
     [
-      Unit.new("session_id", "pAE3a1i5Drs5mKRNq56adA"),
-      Unit.new("user_id", "JfnnlDI7RTiF9RgfG2JNCw"),
-      Unit.new("email", "IuqYkNRfEx5yClel4j3NbA")
+      Absmartly::Unit.new("session_id", "pAE3a1i5Drs5mKRNq56adA"),
+      Absmartly::Unit.new("user_id", "JfnnlDI7RTiF9RgfG2JNCw"),
+      Absmartly::Unit.new("email", "IuqYkNRfEx5yClel4j3NbA")
     ]
   }
   let(:clock) { Time.at(1620000000000 / 1000) }
   let(:clock_in_millis) { clock.to_i }
 
-  let(:descr) { DefaultContextDataDeserializer.new }
+  let(:descr) { Absmartly::DefaultContextDataDeserializer.new }
   let(:json) { resource("context.json") }
   let(:data) { descr.deserialize(json, 0, json.length) }
 
@@ -84,24 +84,24 @@ RSpec.describe Context do
 
   let(:data_future) { OpenStruct.new(data_future: nil, success?: true) }
 
-  let(:data_provider) { DefaultContextDataProvider.new(client_mock) }
+  let(:data_provider) { Absmartly::DefaultContextDataProvider.new(client_mock) }
   let(:data_future_ready) { data_provider.context_data }
 
-  let(:failed_data_provider) { DefaultContextDataProvider.new(failed_client_mock) }
+  let(:failed_data_provider) { Absmartly::DefaultContextDataProvider.new(failed_client_mock) }
   let(:data_future_failed) { failed_data_provider.context_data }
 
-  let(:refresh_data_provider) { DefaultContextDataProvider.new(client_mock(refresh_data)) }
+  let(:refresh_data_provider) { Absmartly::DefaultContextDataProvider.new(client_mock(refresh_data)) }
   let(:refresh_data_future_ready) { refresh_data_provider.context_data }
 
-  let(:audience_data_provider) { DefaultContextDataProvider.new(client_mock(audience_data)) }
+  let(:audience_data_provider) { Absmartly::DefaultContextDataProvider.new(client_mock(audience_data)) }
   let(:audience_data_future_ready) { audience_data_provider.context_data }
 
-  let(:audience_strict_data_provider) { DefaultContextDataProvider.new(client_mock(audience_strict_data)) }
+  let(:audience_strict_data_provider) { Absmartly::DefaultContextDataProvider.new(client_mock(audience_strict_data)) }
   let(:audience_strict_data_future_ready) { audience_strict_data_provider.context_data }
 
   let(:publish_future) { OpenStruct.new(success?: true) }
   let(:event_handler) do
-    ev = instance_double(ContextEventHandler)
+    ev = instance_double(Absmartly::ContextEventHandler)
     allow(ev).to receive(:publish).and_return(publish_future)
     ev
   end
@@ -110,52 +110,52 @@ RSpec.describe Context do
     allow(event_logger).to receive(:handle_event).and_call_original
     event_logger
   end
-  let(:variable_parser) { DefaultVariableParser.new }
-  let(:audience_matcher) { AudienceMatcher.new(DefaultAudienceDeserializer.new) }
+  let(:variable_parser) { Absmartly::DefaultVariableParser.new }
+  let(:audience_matcher) { Absmartly::AudienceMatcher.new(Absmartly::DefaultAudienceDeserializer.new) }
   let(:failure) { Exception.new("FAILED") }
   let(:failure_future) { OpenStruct.new(exception: failure, success?: false, data_future: nil) }
 
   def http_client_mock
-    http_client = instance_double(DefaultHttpClient)
+    http_client = instance_double(Absmartly::DefaultHttpClient)
     allow(http_client).to receive(:get).and_return(faraday_response(refresh_json))
     http_client
   end
 
   def client_mock(data_future = nil)
-    client = instance_double(Client)
+    client = instance_double(Absmartly::Client)
     allow(client).to receive(:context_data).and_return(OpenStruct.new(data_future: data_future || data, success?: true))
     client
   end
 
   def failed_client_mock
-    client = instance_double(Client)
+    client = instance_double(Absmartly::Client)
     allow(client).to receive(:context_data).and_return(failure_future)
     client
   end
 
   def create_context(data_future = nil, config: nil, evt_handler: nil, dt_provider: nil)
     if config.nil?
-      config = ContextConfig.create
+      config = Absmartly::ContextConfig.create
       config.set_units(units)
     end
 
-    Context.create(clock, config, data_future || data_future_ready, dt_provider || data_provider,
+    Absmartly::Context.create(clock, config, data_future || data_future_ready, dt_provider || data_provider,
                    evt_handler || event_handler, event_logger, variable_parser, audience_matcher)
   end
 
   def create_ready_context(evt_handler: nil)
-    config = ContextConfig.create
+    config = Absmartly::ContextConfig.create
     config.set_units(units)
 
-    Context.create(clock, config, data_future_ready, data_provider,
+    Absmartly::Context.create(clock, config, data_future_ready, data_provider,
                    evt_handler || event_handler, event_logger, variable_parser, audience_matcher)
   end
 
   def create_failed_context
-    config = ContextConfig.create
+    config = Absmartly::ContextConfig.create
     config.set_units(units)
 
-    Context.create(clock, config, data_future_failed, failed_data_provider,
+    Absmartly::Context.create(clock, config, data_future_failed, failed_data_provider,
                    event_handler, event_logger, variable_parser, audience_matcher)
   end
 
@@ -171,7 +171,7 @@ RSpec.describe Context do
       "exp_test_1": 1
     }
 
-    config = ContextConfig.create
+    config = Absmartly::ContextConfig.create
     config.set_units(units)
     config.set_overrides(overrides)
 
@@ -184,7 +184,7 @@ RSpec.describe Context do
       "exp_test": 2,
       "exp_test_1": 1
     }
-    config = ContextConfig.create
+    config = Absmartly::ContextConfig.create
     config.set_units(units)
     config.set_custom_assignments(cassignments)
 
@@ -207,13 +207,13 @@ RSpec.describe Context do
   it "calls event logger when ready" do
     create_ready_context
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::READY, data).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::READY, data).once
   end
 
   it "callsEventLoggerWithException" do
     create_context(data_future_failed)
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::ERROR, "FAILED").once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::ERROR, "FAILED").once
   end
 
   it "throwsWhenNotReady" do
@@ -224,31 +224,31 @@ RSpec.describe Context do
     not_ready_message = "ABSmartly Context is not yet ready"
     expect {
       context.peek_treatment("exp_test_ab")
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.treatment("exp_test_ab")
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.data
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.experiments
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.variable_value("banner.border", 17)
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.peek_variable_value("banner.border", 17)
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
 
     expect {
       context.variable_keys
-    }.to raise_error(IllegalStateException, not_ready_message)
+    }.to raise_error(Absmartly::IllegalStateException, not_ready_message)
   end
 
   it "throws when closed" do
@@ -265,67 +265,67 @@ RSpec.describe Context do
     closed_message = "ABSmartly Context is closed"
     expect {
       context.set_attribute("attr1", "value1")
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_attributes("attr1": "value1")
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_override("exp_test_ab", 2)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_overrides("exp_test_ab": 2)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_unit("test", "test")
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_custom_assignment("exp_test_ab", 2)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.set_custom_assignments("exp_test_ab": 2)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.peek_treatment("exp_test_ab")
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.treatment("exp_test_ab")
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.track("goal1", nil)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.publish
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.data
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.experiments
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.variable_value("banner.border", 17)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.peek_variable_value("banner.border", 17)
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
 
     expect {
       context.variable_keys
-    }.to raise_error(IllegalStateException, closed_message)
+    }.to raise_error(Absmartly::IllegalStateException, closed_message)
   end
 
   it "experiments" do
@@ -341,7 +341,7 @@ RSpec.describe Context do
 
     expect {
       context.set_unit("db_user_id", "")
-    }.to raise_error(IllegalStateException, "Unit 'db_user_id' UID must not be blank.")
+    }.to raise_error(Absmartly::IllegalStateException, "Unit 'db_user_id' UID must not be blank.")
   end
 
   it "set unit throws on already set" do
@@ -349,7 +349,7 @@ RSpec.describe Context do
 
     expect {
       context.set_unit("session_id", "new_uid")
-    }.to raise_error(IllegalStateException,
+    }.to raise_error(Absmartly::IllegalStateException,
                      "Unit 'session_id' already set.")
   end
 
@@ -441,9 +441,9 @@ RSpec.describe Context do
     context.set_attributes({ attr2: "value2", attr3: 15 })
 
     attrs = context.instance_variable_get(:@attributes)
-    expect(attrs).to include(Attribute.new("attr1", "value1", clock_in_millis))
-    expect(attrs).to include(Attribute.new(:attr2, "value2", clock_in_millis))
-    expect(attrs).to include(Attribute.new(:attr3, 15, clock_in_millis))
+    expect(attrs).to include(Absmartly::Attribute.new("attr1", "value1", clock_in_millis))
+    expect(attrs).to include(Absmartly::Attribute.new(:attr2, "value2", clock_in_millis))
+    expect(attrs).to include(Absmartly::Attribute.new(:attr3, 15, clock_in_millis))
   end
 
   it "set_attributes before ready" do
@@ -454,8 +454,8 @@ RSpec.describe Context do
     context.set_attributes({ attr2: "value2" })
 
     attrs = context.instance_variable_get(:@attributes)
-    expect(attrs).to include(Attribute.new("attr1", "value1", clock_in_millis))
-    expect(attrs).to include(Attribute.new(:attr2, "value2", clock_in_millis))
+    expect(attrs).to include(Absmartly::Attribute.new("attr1", "value1", clock_in_millis))
+    expect(attrs).to include(Absmartly::Attribute.new(:attr2, "value2", clock_in_millis))
   end
 
   it "set custom assignment" do
@@ -621,16 +621,16 @@ RSpec.describe Context do
     allow(event_handler).to receive(:publish).and_return(publish_future)
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
     expected.attributes = [
-      Attribute.new("age", 21, clock_in_millis)
+      Absmartly::Attribute.new("age", 21, clock_in_millis)
     ]
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
     ]
 
     context.publish
@@ -650,13 +650,13 @@ RSpec.describe Context do
 
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, true),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, true),
     ]
 
     allow(event_handler).to receive(:publish).and_return(publish_future)
@@ -678,13 +678,13 @@ RSpec.describe Context do
 
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false,
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false,
                    true)
     ]
 
@@ -699,15 +699,15 @@ RSpec.describe Context do
   it "getVariableValueCallsEventLogger" do
     context = create_ready_context
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::READY, data).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::READY, data).once
     context.variable_value("banner.border", nil)
     context.variable_value("banner.size", nil)
 
     exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
     ]
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures.first).exactly(exposures.length).time
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures.first).exactly(exposures.length).time
 
     event_logger.clear
     context.variable_value("banner.border", nil)
@@ -835,21 +835,21 @@ RSpec.describe Context do
     expect(context.treatment("not_found")).to eq 0
     expect(context.pending_count).to eq(1 + data.experiments.size)
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis,
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis,
                    true, true, false, false, false, false),
-      Exposure.new(2, "exp_test_abc", "session_id", 2, clock_in_millis,
+      Absmartly::Exposure.new(2, "exp_test_abc", "session_id", 2, clock_in_millis,
                    true, true, false, false, false, false),
-      Exposure.new(3, "exp_test_not_eligible", "user_id", 0, clock_in_millis,
+      Absmartly::Exposure.new(3, "exp_test_not_eligible", "user_id", 0, clock_in_millis,
                    true, false, false, false, false, false),
-      Exposure.new(4, "exp_test_fullon", "session_id", 2, clock_in_millis,
+      Absmartly::Exposure.new(4, "exp_test_fullon", "session_id", 2, clock_in_millis,
                    true, true, false, true, false, false),
-      Exposure.new(0, "not_found", nil, 0, clock_in_millis,
+      Absmartly::Exposure.new(0, "not_found", nil, 0, clock_in_millis,
                    false, true, false, false, false, false),
     ]
     publish_future = nil
@@ -875,21 +875,21 @@ RSpec.describe Context do
     expect(context.treatment("not_found")).to eq(3)
     expect(context.pending_count).to eq(1 + data.experiments.length)
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 12, clock_in_millis, false, true, true, false, false,
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 12, clock_in_millis, false, true, true, false, false,
                    false),
-      Exposure.new(2, "exp_test_abc", "session_id", 13, clock_in_millis, false, true, true, false, false,
+      Absmartly::Exposure.new(2, "exp_test_abc", "session_id", 13, clock_in_millis, false, true, true, false, false,
                    false),
-      Exposure.new(3, "exp_test_not_eligible", "user_id", 11, clock_in_millis, false, true, true, false, false,
+      Absmartly::Exposure.new(3, "exp_test_not_eligible", "user_id", 11, clock_in_millis, false, true, true, false, false,
                    false),
-      Exposure.new(4, "exp_test_fullon", "session_id", 13, clock_in_millis, false, true, true, false, false,
+      Absmartly::Exposure.new(4, "exp_test_fullon", "session_id", 13, clock_in_millis, false, true, true, false, false,
                    false),
-      Exposure.new(0, "not_found", nil, 3, clock_in_millis, false, true, true, false, false, false),
+      Absmartly::Exposure.new(0, "not_found", nil, 3, clock_in_millis, false, true, true, false, false, false),
     ]
 
     context.publish
@@ -935,16 +935,16 @@ RSpec.describe Context do
 
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
     expected.attributes = [
-      Attribute.new("age", 21, clock_in_millis),
+      Absmartly::Attribute.new("age", 21, clock_in_millis),
     ]
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
     ]
 
     context.publish
@@ -963,13 +963,13 @@ RSpec.describe Context do
 
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, true),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, true),
     ]
 
     allow(event_handler).to receive(:publish).and_return(publish_future)
@@ -990,13 +990,13 @@ RSpec.describe Context do
 
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false,
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false,
                    true),
     ]
 
@@ -1062,13 +1062,13 @@ RSpec.describe Context do
     allow(event_handler).to receive(:publish).and_return(publish_future)
     context.publish
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false, true)
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 0, clock_in_millis, false, true, false, false, false, true)
     ]
 
     expect(event_handler).to have_received(:publish).with(context, expected).once
@@ -1080,16 +1080,16 @@ RSpec.describe Context do
 
     context.publish
 
-    expected2 = PublishEvent.new
+    expected2 = Absmartly::PublishEvent.new
     expected2.hashed = true
     expected2.published_at = clock_in_millis
     expected2.units = publish_units
     expected2.attributes = [
-      Attribute.new("age", 30, clock_in_millis)
+      Absmartly::Attribute.new("age", 30, clock_in_millis)
     ]
 
     expected2.exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false)
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false)
     ]
 
     expect(event_handler).to have_received(:publish).with(context, expected2).once
@@ -1098,18 +1098,18 @@ RSpec.describe Context do
   it "treatmentCallsEventLogger" do
     event_logger.clear
     context = create_ready_context
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::READY, data).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::READY, data).once
 
     context.treatment("exp_test_ab")
     context.treatment("not_found")
 
     exposures = [
-      Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
-      Exposure.new(0, "not_found", nil, 0, clock_in_millis, false, true, false, false, false, false),
+      Absmartly::Exposure.new(1, "exp_test_ab", "session_id", 1, clock_in_millis, true, true, false, false, false, false),
+      Absmartly::Exposure.new(0, "not_found", nil, 0, clock_in_millis, false, true, false, false, false, false),
     ]
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures[0]).once
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures[1]).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures[0]).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::EXPOSURE, exposures[1]).once
 
     event_logger.clear
     context.treatment("exp_test_ab")
@@ -1130,17 +1130,17 @@ RSpec.describe Context do
 
     expect(context.pending_count).to eq(4)
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.goals = [
-      GoalAchievement.new("goal1", clock_in_millis,
+      Absmartly::GoalAchievement.new("goal1", clock_in_millis,
                           { amount: 125, hours: 245 }),
-      GoalAchievement.new("goal2", clock_in_millis, { tries: 7 }),
-      GoalAchievement.new("goal2", clock_in_millis, { tests: 12 }),
-      GoalAchievement.new("goal3", clock_in_millis, nil),
+      Absmartly::GoalAchievement.new("goal2", clock_in_millis, { tries: 7 }),
+      Absmartly::GoalAchievement.new("goal2", clock_in_millis, { tests: 12 }),
+      Absmartly::GoalAchievement.new("goal3", clock_in_millis, nil),
     ]
 
     context.publish
@@ -1172,24 +1172,24 @@ RSpec.describe Context do
   it "publishCallsEventLogger" do
     event_logger.clear
     context = create_ready_context
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::READY, data).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::READY, data).once
 
     context.track("goal1", { amount: 125, hours: 245 })
 
-    expected = PublishEvent.new
+    expected = Absmartly::PublishEvent.new
     expected.hashed = true
     expected.published_at = clock_in_millis
     expected.units = publish_units
 
     expected.goals = [
-      GoalAchievement.new("goal1", clock_in_millis,
+      Absmartly::GoalAchievement.new("goal1", clock_in_millis,
                           { amount: 125, hours: 245 }),
     ]
     allow(event_handler).to receive(:publish).and_return(failure_future)
 
     context.publish
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::PUBLISH, expected).once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::PUBLISH, expected).once
     expect(event_handler).to have_received(:publish).with(context, expected).once
   end
 
@@ -1202,7 +1202,7 @@ RSpec.describe Context do
     actual = context.publish
     expect(actual).to eq(failure)
 
-    expect(event_logger).to have_received(:handle_event).with(ContextEventLogger::EVENT_TYPE::ERROR, "FAILED").once
+    expect(event_logger).to have_received(:handle_event).with(Absmartly::ContextEventLogger::EVENT_TYPE::ERROR, "FAILED").once
   end
 
   it "publish Does Not Call event handler When Failed" do
@@ -1221,7 +1221,7 @@ RSpec.describe Context do
   end
 
   it "publishExceptionally" do
-    ev = instance_double(ContextEventHandler)
+    ev = instance_double(Absmartly::ContextEventHandler)
     context = create_ready_context(evt_handler: ev)
     expect(context.ready?).to be_truthy
     expect(context.failed?).to be_falsey
@@ -1265,7 +1265,7 @@ end
 
 
 
-class MockContextEventLoggerProxy < ContextEventLogger
+class MockContextEventLoggerProxy < Absmartly::ContextEventLogger
   attr_accessor :called, :events, :logger
 
   def initialize

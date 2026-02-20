@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "context_config"
-require "context_data_deserializer"
-require "context_event_serializer"
+require "absmartly/context_config"
+require "absmartly/context_data_deserializer"
+require "absmartly/context_event_serializer"
 
-RSpec.describe ContextConfig do
+RSpec.describe Absmartly::ContextConfig do
   it ".set_unit" do
     config = described_class.create
     config.set_unit("session_id", "0ab1e23f4eee")

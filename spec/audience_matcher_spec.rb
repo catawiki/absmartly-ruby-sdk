@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "audience_matcher"
-require "default_audience_deserializer"
+require "absmartly/audience_matcher"
+require "absmartly/default_audience_deserializer"
 
-RSpec.describe AudienceMatcher do
-  let(:matcher) { AudienceMatcher.new(DefaultAudienceDeserializer.new) }
+RSpec.describe Absmartly::AudienceMatcher do
+  let(:matcher) { Absmartly::AudienceMatcher.new(Absmartly::DefaultAudienceDeserializer.new) }
 
   it "evaluate returns nil on empty audience" do
     expect(matcher.evaluate("", nil)).to be_nil

@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "json_expr/expr_evaluator"
-require "json_expr/operator"
-require "json_expr/evaluator"
+require "absmartly/json_expr/expr_evaluator"
+require "absmartly/json_expr/operator"
+require "absmartly/json_expr/evaluator"
 
-RSpec.describe ExprEvaluator do
+RSpec.describe Absmartly::ExprEvaluator do
   describe ".evaluate" do
     it "considers list as and combinator" do
-      and_operator = instance_double(Operator)
+      and_operator = instance_double(Absmartly::Operator)
       allow(and_operator).to receive(:evaluate).and_return('value': true)
-      or_operator = instance_double(Operator)
+      or_operator = instance_double(Absmartly::Operator)
       allow(or_operator).to receive(:evaluate).and_return('value': true)
-      expect(and_operator.evaluate(EMPTY_MAP, EMPTY_MAP)).to eq('value': true)
+      expect(and_operator.evaluate(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)).to eq('value': true)
 
-      evaluator = described_class.new({ 'and': and_operator, 'or': or_operator }, EMPTY_MAP)
+      evaluator = described_class.new({ 'and': and_operator, 'or': or_operator }, Absmartly::EMPTY_MAP)
       args = [{ 'value': true }, { 'value': false }]
       expect(evaluator.evaluate(args)).not_to be_nil
 
@@ -22,32 +22,32 @@ RSpec.describe ExprEvaluator do
     end
 
     it "returns null if operator not found" do
-      value_operator = instance_double(Operator)
+      value_operator = instance_double(Absmartly::Operator)
       allow(value_operator).to receive(:evaluate).and_return('value': true)
 
-      evaluator = described_class.new({ 'value': value_operator }, EMPTY_MAP)
+      evaluator = described_class.new({ 'value': value_operator }, Absmartly::EMPTY_MAP)
       expect(evaluator.evaluate('not_found': true)).to be_nil
 
       expect(value_operator).to have_received(:evaluate).exactly(0).time
     end
 
     it "returns the args if calls operator with args" do
-      value_operator = instance_double(Operator)
+      value_operator = instance_double(Absmartly::Operator)
 
       args = [1, 2, 3]
 
-      allow(value_operator).to receive(:evaluate).with(Evaluator, args).and_return(args)
+      allow(value_operator).to receive(:evaluate).with(Absmartly::Evaluator, args).and_return(args)
 
-      evaluator = described_class.new({ value: value_operator }, EMPTY_MAP)
+      evaluator = described_class.new({ value: value_operator }, Absmartly::EMPTY_MAP)
       expect(evaluator.evaluate(value: args)).to eq(args)
 
-      expect(value_operator).to have_received(:evaluate).with(Evaluator, args).once
+      expect(value_operator).to have_received(:evaluate).with(Absmartly::Evaluator, args).once
     end
 
     it "test boolean convert" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
-      expect(evaluator.boolean_convert(EMPTY_LIST)).to be_truthy
-      expect(evaluator.boolean_convert(EMPTY_MAP)).to be_truthy
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
+      expect(evaluator.boolean_convert(Absmartly::EMPTY_LIST)).to be_truthy
+      expect(evaluator.boolean_convert(Absmartly::EMPTY_MAP)).to be_truthy
       expect(evaluator.boolean_convert(nil)).to be_falsey
 
       expect(evaluator.boolean_convert(true)).to be_truthy
@@ -64,10 +64,10 @@ RSpec.describe ExprEvaluator do
     end
 
     it "test number convert" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
-      expect(evaluator.number_convert(EMPTY_LIST)).to be_nil
-      expect(evaluator.number_convert(EMPTY_MAP)).to be_nil
+      expect(evaluator.number_convert(Absmartly::EMPTY_LIST)).to be_nil
+      expect(evaluator.number_convert(Absmartly::EMPTY_MAP)).to be_nil
       expect(evaluator.number_convert(nil)).to be_nil
       expect(evaluator.number_convert("")).to be_nil
       expect(evaluator.number_convert("abcd")).to be_nil
@@ -101,11 +101,11 @@ RSpec.describe ExprEvaluator do
     end
 
     it "test string convert" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
       expect(evaluator.string_convert(nil)).to be_nil
-      expect(evaluator.string_convert(EMPTY_MAP)).to be_nil
-      expect(evaluator.string_convert(EMPTY_LIST)).to be_nil
+      expect(evaluator.string_convert(Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.string_convert(Absmartly::EMPTY_LIST)).to be_nil
 
       expect(evaluator.string_convert(true)).to eq("true")
       expect(evaluator.string_convert(false)).to eq("false")
@@ -147,7 +147,7 @@ RSpec.describe ExprEvaluator do
         "f" => { "y" => { "x" => 3, "0" => 10 } }
       }
 
-      evaluator = described_class.new(EMPTY_MAP, vars)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, vars)
 
       expect(evaluator.extract_var("a")).to eq(1)
       expect(evaluator.extract_var("b")).to eq(true)
@@ -177,7 +177,7 @@ RSpec.describe ExprEvaluator do
     end
 
     it "test compare null" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
       expect(evaluator.compare(nil, nil)).to eq(0)
 
@@ -187,38 +187,38 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare(nil, false)).to be_nil
       expect(evaluator.compare(nil, "")).to be_nil
       expect(evaluator.compare(nil, "abc")).to be_nil
-      expect(evaluator.compare(nil, EMPTY_MAP)).to be_nil
-      expect(evaluator.compare(nil, EMPTY_LIST)).to be_nil
+      expect(evaluator.compare(nil, Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare(nil, Absmartly::EMPTY_LIST)).to be_nil
     end
 
     it "test compare objects" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
-      expect(evaluator.compare(EMPTY_MAP, 0)).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, 1)).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, true)).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, false)).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, "")).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, "abc")).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, EMPTY_MAP)).to eq(0)
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, 0)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, 1)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, true)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, false)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, "")).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, "abc")).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)).to eq(0)
       expect(evaluator.compare({ "a" => 1 }, { "a" => 1 })).to eq(0)
       expect(evaluator.compare({ "a" => 1 }, { "b" => 2 })).to be_nil
-      expect(evaluator.compare(EMPTY_MAP, EMPTY_LIST)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_MAP, Absmartly::EMPTY_LIST)).to be_nil
 
-      expect(evaluator.compare(EMPTY_LIST, 0)).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, 1)).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, true)).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, false)).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, "")).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, "abc")).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, EMPTY_MAP)).to be_nil
-      expect(evaluator.compare(EMPTY_LIST, EMPTY_LIST)).to eq(0)
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, 0)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, 1)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, true)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, false)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, "")).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, "abc")).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare(Absmartly::EMPTY_LIST, Absmartly::EMPTY_LIST)).to eq(0)
       expect(evaluator.compare([1, 2], [1, 2])).to eq(0)
       expect(evaluator.compare([1, 2], [3, 4])).to be_nil
     end
 
     it "test compare booleans" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
       expect(evaluator.compare(false, 0)).to eq(0)
       expect(evaluator.compare(false, 1)).to eq(-1)
@@ -226,8 +226,8 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare(false, false)).to eq(0)
       expect(evaluator.compare(false, "")).to eq(0)
       expect(evaluator.compare(false, "abc")).to eq(-1)
-      expect(evaluator.compare(false, EMPTY_MAP)).to eq(-1)
-      expect(evaluator.compare(false, EMPTY_LIST)).to eq(-1)
+      expect(evaluator.compare(false, Absmartly::EMPTY_MAP)).to eq(-1)
+      expect(evaluator.compare(false, Absmartly::EMPTY_LIST)).to eq(-1)
 
       expect(evaluator.compare(true, 0)).to eq(1)
       expect(evaluator.compare(true, 1)).to eq(0)
@@ -235,12 +235,12 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare(true, false)).to eq(1)
       expect(evaluator.compare(true, "")).to eq(1)
       expect(evaluator.compare(true, "abc")).to eq(0)
-      expect(evaluator.compare(true, EMPTY_MAP)).to eq(0)
-      expect(evaluator.compare(true, EMPTY_LIST)).to eq(0)
+      expect(evaluator.compare(true, Absmartly::EMPTY_MAP)).to eq(0)
+      expect(evaluator.compare(true, Absmartly::EMPTY_LIST)).to eq(0)
     end
 
     it "test compare numbers" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
       expect(evaluator.compare(0, 0)).to eq(0)
       expect(evaluator.compare(0, 1)).to eq(-1)
@@ -248,8 +248,8 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare(0, false)).to eq(0)
       expect(evaluator.compare(0, "")).to be_nil
       expect(evaluator.compare(0, "abc")).to be_nil
-      expect(evaluator.compare(0, EMPTY_MAP)).to be_nil
-      expect(evaluator.compare(0, EMPTY_LIST)).to be_nil
+      expect(evaluator.compare(0, Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare(0, Absmartly::EMPTY_LIST)).to be_nil
 
       expect(evaluator.compare(1, 0)).to eq(1)
       expect(evaluator.compare(1, 1)).to eq(0)
@@ -257,8 +257,8 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare(1, false)).to eq(1)
       expect(evaluator.compare(1, "")).to be_nil
       expect(evaluator.compare(1, "abc")).to be_nil
-      expect(evaluator.compare(1, EMPTY_MAP)).to be_nil
-      expect(evaluator.compare(1, EMPTY_LIST)).to be_nil
+      expect(evaluator.compare(1, Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare(1, Absmartly::EMPTY_LIST)).to be_nil
 
       expect(evaluator.compare(1.0, 1)).to eq(0)
       expect(evaluator.compare(1.5, 1)).to eq(1)
@@ -280,7 +280,7 @@ RSpec.describe ExprEvaluator do
     end
 
     it "test compare strings" do
-      evaluator = described_class.new(EMPTY_MAP, EMPTY_MAP)
+      evaluator = described_class.new(Absmartly::EMPTY_MAP, Absmartly::EMPTY_MAP)
 
       expect(evaluator.compare("", "")).to eq(0)
       expect(evaluator.compare("abc", "abc")).to eq(0)
@@ -288,10 +288,10 @@ RSpec.describe ExprEvaluator do
       expect(evaluator.compare("1", 1)).to eq(0)
       expect(evaluator.compare("true", true)).to eq(0)
       expect(evaluator.compare("false", false)).to eq(0)
-      expect(evaluator.compare("", EMPTY_MAP)).to be_nil
-      expect(evaluator.compare("abc", EMPTY_MAP)).to be_nil
-      expect(evaluator.compare("", EMPTY_LIST)).to be_nil
-      expect(evaluator.compare("abc", EMPTY_LIST)).to be_nil
+      expect(evaluator.compare("", Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare("abc", Absmartly::EMPTY_MAP)).to be_nil
+      expect(evaluator.compare("", Absmartly::EMPTY_LIST)).to be_nil
+      expect(evaluator.compare("abc", Absmartly::EMPTY_LIST)).to be_nil
 
       expect(evaluator.compare("abc", "bcd")).to eq(-1)
       expect(evaluator.compare("bcd", "abc")).to eq(1)

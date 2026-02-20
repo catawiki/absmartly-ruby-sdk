@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "default_variable_parser"
-require "context"
+require "absmartly/default_variable_parser"
+require "absmartly/context"
 
-RSpec.describe DefaultVariableParser do
+RSpec.describe Absmartly::DefaultVariableParser do
   it ".parse" do
-    context = instance_double(Context)
+    context = instance_double(Absmartly::Context)
     config_value = resource("variables.json")
 
     variable_parser = described_class.new
@@ -28,7 +28,7 @@ RSpec.describe DefaultVariableParser do
   end
 
   it ".parse does not throw" do
-    context = instance_double(Context)
+    context = instance_double(Absmartly::Context)
     config_value = resource("variables.json")[5..]
 
     variable_parser = described_class.new

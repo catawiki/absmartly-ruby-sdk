@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "default_http_client_config"
-require "context"
+require "absmartly/default_http_client_config"
+require "absmartly/context"
 
-RSpec.describe DefaultHttpClientConfig do
+RSpec.describe Absmartly::DefaultHttpClientConfig do
   it ".connect_timeout" do
     config = described_class.new
     config.connect_timeout = 123

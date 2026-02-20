@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "json_expr/json_expr"
+require "absmartly/json_expr/json_expr"
 
-RSpec.describe JsonExpr do
+RSpec.describe Absmartly::JsonExpr do
   describe ".evaluate_boolean_expr" do
     def value_for(x)
       { value: x }

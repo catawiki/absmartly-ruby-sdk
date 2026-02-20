@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "default_audience_deserializer"
-require "context"
-require "client"
-require "json/publish_event"
+require "absmartly/default_audience_deserializer"
+require "absmartly/context"
+require "absmartly/client"
+require "absmartly/json/publish_event"
 
-RSpec.describe DefaultAudienceDeserializer do
+RSpec.describe Absmartly::DefaultAudienceDeserializer do
   it ".deserialize" do
     deser = described_class.new
     audience = "{\"filter\":[{\"gte\":[{\"var\":\"age\"},{\"value\":20}]}]}"
