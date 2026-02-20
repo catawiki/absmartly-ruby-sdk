@@ -9,7 +9,7 @@ module Absmartly
 
     # @abstract method
     def unary(evaluator, arg)
-      raise NotImplementedError.new("You must implement unnnary method.")
+      raise NotImplementedError.new("You must implement unary method.")
     end
   end
 end
