@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "variant_assigner"
+require "absmartly/variant_assigner"
 
-RSpec.describe VariantAssigner do
+RSpec.describe Absmartly::VariantAssigner do
   describe ".choose_variant" do
     probs = [
       0.0,
@@ -66,7 +66,7 @@ RSpec.describe VariantAssigner do
 
     splits.each_with_index do |split, i|
       it "with split:#{split}, prob:#{probs[i]}" do
-        expect(VariantAssigner.choose_variant(split, probs[i])).to eq variants[i]
+        expect(Absmartly::VariantAssigner.choose_variant(split, probs[i])).to eq variants[i]
       end
     end
   end
@@ -115,7 +115,7 @@ RSpec.describe VariantAssigner do
     keys_with_variants.each do |key, variants|
       splits.each_with_index do |split, i|
         it "with key:#{key}, split: #{split}, seeds[]:#{seeds[i]}, variant:#{variants[i]}" do
-          @variant_assigner = VariantAssigner.new(key)
+          @variant_assigner = Absmartly::VariantAssigner.new(key)
           seed_hi, seed_lo = seeds[i]
           expect(@variant_assigner.assign(split, seed_hi, seed_lo)).to eq variants[i]
         end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "json_expr/evaluator"
+require "absmartly/json_expr/evaluator"
 
 RSpec.shared_examples "shared operator" do
   before(:each) do
@@ -10,7 +10,7 @@ RSpec.shared_examples "shared operator" do
   attr_reader :evaluator
 
   def reset_evaluator
-    @evaluator = Evaluator.new
+    @evaluator = Absmartly::Evaluator.new
 
     allow(@evaluator).to receive(:evaluate).and_wrap_original do |_, *invocation|
       invocation[0]

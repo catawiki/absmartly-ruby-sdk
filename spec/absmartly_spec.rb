@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require "context"
-require "context_config"
-require "default_context_data_deserializer"
-require "default_variable_parser"
-require "default_audience_deserializer"
-require "context_data_provider"
-require "default_context_data_provider"
-require "context_event_handler"
-require "context_event_logger"
-require "audience_matcher"
-require "json/unit"
+require "absmartly/context"
+require "absmartly/context_config"
+require "absmartly/default_context_data_deserializer"
+require "absmartly/default_variable_parser"
+require "absmartly/default_audience_deserializer"
+require "absmartly/context_data_provider"
+require "absmartly/default_context_data_provider"
+require "absmartly/context_event_handler"
+require "absmartly/context_event_logger"
+require "absmartly/audience_matcher"
+require "absmartly/json/unit"
 require "logger"
 
-class MockContextEventLoggerProxy < ContextEventLogger
+class MockContextEventLoggerProxy < Absmartly::ContextEventLogger
   attr_accessor :called, :events, :logger
 
   def initialize
@@ -120,26 +120,26 @@ RSpec.describe Absmartly do
     end
     let(:publish_units) do
       [
-        Unit.new("session_id", "pAE3a1i5Drs5mKRNq56adA"),
-        Unit.new("user_id", "JfnnlDI7RTiF9RgfG2JNCw"),
-        Unit.new("email", "IuqYkNRfEx5yClel4j3NbA")
+        Absmartly::Unit.new("session_id", "pAE3a1i5Drs5mKRNq56adA"),
+        Absmartly::Unit.new("user_id", "JfnnlDI7RTiF9RgfG2JNCw"),
+        Absmartly::Unit.new("email", "IuqYkNRfEx5yClel4j3NbA")
       ]
     end
     let(:clock) { Time.at(1620000000000 / 1000) }
     let(:clock_in_millis) { clock.to_i }
 
-    let(:descr) { DefaultContextDataDeserializer.new }
+    let(:descr) { Absmartly::DefaultContextDataDeserializer.new }
     let(:json) { resource("context.json") }
     let(:data) { descr.deserialize(json, 0, json.length) }
 
     let(:data_future) { OpenStruct.new(data_future: nil, success?: true) }
 
-    let(:data_provider) { DefaultContextDataProvider.new(client_mock) }
+    let(:data_provider) { Absmartly::DefaultContextDataProvider.new(client_mock) }
     let(:data_future_ready) { data_provider.context_data }
 
     let(:publish_future) { OpenStruct.new(success?: true) }
     let(:event_handler) do
-      ev = instance_double(ContextEventHandler)
+      ev = instance_double(Absmartly::ContextEventHandler)
       allow(ev).to receive(:publish).and_return(publish_future)
       ev
     end
@@ -150,18 +150,18 @@ RSpec.describe Absmartly do
       logger
     end
 
-    let(:variable_parser) { DefaultVariableParser.new }
-    let(:audience_matcher) { AudienceMatcher.new(DefaultAudienceDeserializer.new) }
+    let(:variable_parser) { Absmartly::DefaultVariableParser.new }
+    let(:audience_matcher) { Absmartly::AudienceMatcher.new(Absmartly::DefaultAudienceDeserializer.new) }
 
     def client_mock
-      client = instance_double(Client)
+      client = instance_double(Absmartly::Client)
       allow(client).to receive(:context_data).and_return(OpenStruct.new(data_future: data, success?: true))
       allow(client).to receive(:publish).and_return(OpenStruct.new(success?: true))
       client
     end
 
     def create_ready_context
-      config = ContextConfig.create
+      config = Absmartly::ContextConfig.create
       config.set_units(units)
 
       Absmartly.create_context(config)
@@ -179,7 +179,7 @@ RSpec.describe Absmartly do
 
     context "when configured globally" do
       before do
-        allow(Client).to receive(:create).and_return(client_mock)
+        allow(Absmartly::Client).to receive(:create).and_return(client_mock)
 
         Absmartly.configure_client do |config|
           config.endpoint = "https://test.absmartly.io/v1"
@@ -194,7 +194,7 @@ RSpec.describe Absmartly do
         mock_logger.clear
         create_ready_context
         expect(mock_logger).to have_received(:handle_event)
-          .with(ContextEventLogger::EVENT_TYPE::READY, data).once
+          .with(Absmartly::ContextEventLogger::EVENT_TYPE::READY, data).once
       end
 
       it "receives EXPOSURE event with correct values when treatment() is called" do
@@ -205,7 +205,7 @@ RSpec.describe Absmartly do
         context.treatment("exp_test_ab")
 
         expect(mock_logger).to have_received(:handle_event)
-          .with(ContextEventLogger::EVENT_TYPE::EXPOSURE, satisfy { |exposure|
+          .with(Absmartly::ContextEventLogger::EVENT_TYPE::EXPOSURE, satisfy { |exposure|
             exposure.id == 1 &&
             exposure.name == "exp_test_ab" &&
             exposure.unit == "session_id" &&
@@ -228,7 +228,7 @@ RSpec.describe Absmartly do
         context.track("goal1", properties)
 
         expect(mock_logger).to have_received(:handle_event)
-          .with(ContextEventLogger::EVENT_TYPE::GOAL, satisfy { |goal|
+          .with(Absmartly::ContextEventLogger::EVENT_TYPE::GOAL, satisfy { |goal|
             goal.name == "goal1" &&
             goal.properties == properties
           }).once
@@ -243,7 +243,7 @@ RSpec.describe Absmartly do
         context.publish
 
         expect(mock_logger).to have_received(:handle_event)
-          .with(ContextEventLogger::EVENT_TYPE::PUBLISH, instance_of(PublishEvent)).once
+          .with(Absmartly::ContextEventLogger::EVENT_TYPE::PUBLISH, instance_of(Absmartly::PublishEvent)).once
       end
 
       it "receives CLOSE event when close() is called" do
@@ -254,7 +254,7 @@ RSpec.describe Absmartly do
         context.close
 
         expect(mock_logger).to have_received(:handle_event)
-          .with(ContextEventLogger::EVENT_TYPE::CLOSE, nil).once
+          .with(Absmartly::ContextEventLogger::EVENT_TYPE::CLOSE, nil).once
       end
     end
   end

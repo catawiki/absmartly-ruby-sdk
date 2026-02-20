@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "hashing"
+require "absmartly/hashing"
 
-RSpec.describe Hashing do
+RSpec.describe Absmartly::Hashing do
   describe ".hash_unit" do
     tests = [
        ["", "1B2M2Y8AsgTpgAmY7PhCfg"],
@@ -24,7 +24,7 @@ RSpec.describe Hashing do
 
     tests.each do |test|
       it "given: #{test.first}, then: md5 must be #{test.last}" do
-        md5 = Hashing.hash_unit(test.first)
+        md5 = Absmartly::Hashing.hash_unit(test.first)
         expect(md5).to eq(test.last)
       end
     end
