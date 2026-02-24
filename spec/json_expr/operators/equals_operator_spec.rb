@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "./shared_operator"
-require "json_expr/operators/equals_operator"
+require "absmartly/json_expr/operators/equals_operator"
 
-RSpec.describe EqualsOperator do
+RSpec.describe Absmartly::EqualsOperator do
   include_examples "shared operator"
 
   let(:operator) { described_class.new }

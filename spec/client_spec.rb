@@ -1,74 +1,74 @@
 # frozen_string_literal: true
 
-require "client"
-require "client_config"
-require "json/context_data"
-require "json/publish_event"
-require "context_data_deserializer"
-require "context_event_serializer"
-require "http_client"
-require "default_http_client"
-require "default_context_data_deserializer"
-require "default_context_event_serializer"
+require "absmartly/client"
+require "absmartly/client_config"
+require "absmartly/json/context_data"
+require "absmartly/json/publish_event"
+require "absmartly/context_data_deserializer"
+require "absmartly/context_event_serializer"
+require "absmartly/http_client"
+require "absmartly/default_http_client"
+require "absmartly/default_context_data_deserializer"
+require "absmartly/default_context_event_serializer"
 
-RSpec.describe Client do
+RSpec.describe Absmartly::Client do
   it "create throws with invalid config" do
     expect {
-      config = ClientConfig.create
+      config = Absmartly::ClientConfig.create
       config.api_key = "test-api-key"
       config.application = "website"
       config.environment = "dev"
-      Client.create(config)
+      Absmartly::Client.create(config)
     }.to raise_error(ArgumentError, "Missing Endpoint configuration")
 
     expect {
-      config = ClientConfig.create
+      config = Absmartly::ClientConfig.create
       config.endpoint = "https://localhost/v1"
       config.application = "website"
       config.environment = "dev"
-      Client.create(config)
+      Absmartly::Client.create(config)
     }.to raise_error(ArgumentError, "Missing APIKey configuration")
 
     expect {
-      config = ClientConfig.create
+      config = Absmartly::ClientConfig.create
       config.endpoint = "https://localhost/v1"
       config.api_key = "test-api-key"
       config.environment = "dev"
-      Client.create(config)
+      Absmartly::Client.create(config)
     }.to raise_error(ArgumentError, "Missing Application configuration")
 
     expect {
-      config = ClientConfig.create
+      config = Absmartly::ClientConfig.create
       config.endpoint = "https://localhost/v1"
       config.api_key = "test-api-key"
       config.application = "website"
-      Client.create(config)
+      Absmartly::Client.create(config)
     }.to raise_error(ArgumentError, "Missing Environment configuration")
   end
 
   it "create with defaults" do
-    config = ClientConfig.create
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
 
     data_bytes = "{}"
-    expected = ContextData.new
+    expected = Absmartly::ContextData.new
 
-    event = PublishEvent.new
+    event = Absmartly::PublishEvent.new
     publish_bytes = nil
 
-    deser_ctor = instance_double(DefaultContextDataDeserializer)
+    deser_ctor = instance_double(Absmartly::DefaultContextDataDeserializer)
     allow(deser_ctor).to receive(:deserialize).with(data_bytes, 0, data_bytes.length).and_return(expected)
     deser_ctor.deserialize(data_bytes, 0, data_bytes.length)
 
-    ser_ctor = instance_double(DefaultContextEventSerializer)
+    ser_ctor = instance_double(Absmartly::DefaultContextEventSerializer)
     allow(ser_ctor).to receive(:serialize).with(event).and_return(publish_bytes)
     ser_ctor.serialize(event)
 
-    http_client = instance_double(DefaultHttpClient)
-    allow(DefaultHttpClient).to receive(:create).and_return(http_client)
+    http_client = instance_double(Absmartly::DefaultHttpClient)
+    allow(Absmartly::DefaultHttpClient).to receive(:create).and_return(http_client)
 
     expected_query = {
       "application": "website",
@@ -90,7 +90,7 @@ RSpec.describe Client do
     allow(http_client).to receive(:put).with("https://localhost/v1/context", nil, expected_headers, publish_bytes).and_return(byte_response(data_bytes))
     allow(http_client).to receive(:close)
 
-    client = Client.create(config)
+    client = Absmartly::Client.create(config)
     client.context_data
 
     client.publish(event)
@@ -110,15 +110,15 @@ RSpec.describe Client do
   end
 
   it "context_data" do
-    http_client = HttpClient.new
-    deser = ContextDataDeserializer.new
-    config = ClientConfig.create
+    http_client = Absmartly::HttpClient.new
+    deser = Absmartly::ContextDataDeserializer.new
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_data_deserializer = deser
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
 
     data_bytes = "{}"
 
@@ -137,7 +137,7 @@ RSpec.describe Client do
 
     allow(http_client).to receive(:get).with("https://localhost/v1/context", expected_query, expected_headers).and_return(byte_response(data_bytes))
 
-    expected = ContextData.new
+    expected = Absmartly::ContextData.new
     allow(deser).to receive(:deserialize).with(data_bytes, 0, data_bytes.size).and_return(expected)
 
     result = client.context_data
@@ -146,16 +146,16 @@ RSpec.describe Client do
   end
 
   it "context data exceptionally HTTP" do
-    http_client = instance_double(HttpClient)
-    deser = instance_double(ContextDataDeserializer)
-    config = ClientConfig.create
+    http_client = instance_double(Absmartly::HttpClient)
+    deser = instance_double(Absmartly::ContextDataDeserializer)
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_data_deserializer = deser
 
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
 
     expected_query = {
       "application": "website",
@@ -172,7 +172,7 @@ RSpec.describe Client do
 
     allow(deser).to receive(:deserialize).and_return({})
     allow(http_client).to receive(:get).with("https://localhost/v1/context", expected_query, expected_headers)
-                                       .and_return(DefaultHttpClient.default_response(500, "Internal Server Error", nil, nil))
+                                       .and_return(Absmartly::DefaultHttpClient.default_response(500, "Internal Server Error", nil, nil))
 
     result = client.context_data
     actual = result.exception
@@ -182,16 +182,16 @@ RSpec.describe Client do
   end
 
   it "context data exceptionally connection" do
-    http_client = instance_double(HttpClient)
-    deser = instance_double(ContextDataDeserializer)
-    config = ClientConfig.create
+    http_client = instance_double(Absmartly::HttpClient)
+    deser = instance_double(Absmartly::ContextDataDeserializer)
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_data_deserializer = deser
 
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
 
     expected_query = {
       "application": "website",
@@ -219,16 +219,16 @@ RSpec.describe Client do
   end
 
   it "publish" do
-    http_client = instance_double(HttpClient)
-    ser = instance_double(ContextEventSerializer)
-    config = ClientConfig.create
+    http_client = instance_double(Absmartly::HttpClient)
+    ser = instance_double(Absmartly::ContextEventSerializer)
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_event_serializer = ser
 
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
     expected_headers = {
       "Content-Type": "application/json",
       "X-API-Key": "test-api-key",
@@ -238,7 +238,7 @@ RSpec.describe Client do
       "X-Agent": "absmartly-ruby-sdk"
     }
     bytes = "0"
-    event = PublishEvent.new
+    event = Absmartly::PublishEvent.new
     allow(ser).to receive(:serialize).with(event).and_return(bytes)
     allow(http_client).to receive(:put).with("https://localhost/v1/context", nil, expected_headers, bytes)
                                        .and_return(byte_response(bytes[0]))
@@ -250,15 +250,15 @@ RSpec.describe Client do
   end
 
   it "publish Exceptionally HTTP" do
-    http_client = instance_double(HttpClient)
-    ser = instance_double(ContextEventSerializer)
-    config = ClientConfig.create
+    http_client = instance_double(Absmartly::HttpClient)
+    ser = instance_double(Absmartly::ContextEventSerializer)
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_event_serializer = ser
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
 
     expected_headers = {
       "Content-Type": "application/json",
@@ -268,27 +268,27 @@ RSpec.describe Client do
       "X-Application-Version": "0",
       "X-Agent": "absmartly-ruby-sdk"
     }
-    event = PublishEvent.new
+    event = Absmartly::PublishEvent.new
     bytes = "0"
 
     allow(ser).to receive(:serialize).with(event).and_return(bytes)
     allow(http_client).to receive(:put).with("https://localhost/v1/context", nil, expected_headers, bytes)
-                                       .and_return(DefaultHttpClient.default_response(500, "Internal Server Error", nil, nil))
+                                       .and_return(Absmartly::DefaultHttpClient.default_response(500, "Internal Server Error", nil, nil))
     client.publish(event)
     expect(http_client).to have_received(:put).once
     expect(http_client).to have_received(:put).with("https://localhost/v1/context", nil, expected_headers, bytes).once
   end
 
   it "publish Exceptionally Connection" do
-    http_client = instance_double(HttpClient)
-    ser = instance_double(ContextEventSerializer)
-    config = ClientConfig.create
+    http_client = instance_double(Absmartly::HttpClient)
+    ser = instance_double(Absmartly::ContextEventSerializer)
+    config = Absmartly::ClientConfig.create
     config.endpoint = "https://localhost/v1"
     config.api_key = "test-api-key"
     config.application = "website"
     config.environment = "dev"
     config.context_event_serializer = ser
-    client = Client.create(config, http_client)
+    client = Absmartly::Client.create(config, http_client)
 
     expected_headers = {
       "Content-Type": "application/json",
@@ -298,7 +298,7 @@ RSpec.describe Client do
       "X-Application-Version": "0",
       "X-Agent": "absmartly-ruby-sdk"
     }
-    event = PublishEvent.new
+    event = Absmartly::PublishEvent.new
     bytes = "0"
 
     response_future = failed_response(content: "FAILED")
@@ -315,7 +315,7 @@ RSpec.describe Client do
 end
 
 def byte_response(bytes)
-  DefaultHttpClient.default_response(
+  Absmartly::DefaultHttpClient.default_response(
     200,
     "OK",
     "application/json; charset=utf8",
@@ -323,7 +323,7 @@ def byte_response(bytes)
 end
 
 def failed_response(status_code: 400, status_message: "Bad Request", content: nil)
-  DefaultHttpClient.default_response(
+  Absmartly::DefaultHttpClient.default_response(
     status_code,
     status_message,
     "application/json; charset=utf8",

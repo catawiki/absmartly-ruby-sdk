@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "client_config"
-require "context_data_deserializer"
-require "context_event_serializer"
-require "default_http_client_config"
+require "absmartly/client_config"
+require "absmartly/context_data_deserializer"
+require "absmartly/context_event_serializer"
+require "absmartly/default_http_client_config"
 
-RSpec.describe ClientConfig do
+RSpec.describe Absmartly::ClientConfig do
   it ".endpoint" do
     config = described_class.create
     config.endpoint = "https://test.endpoint.com"
@@ -31,22 +31,22 @@ RSpec.describe ClientConfig do
   end
 
   it ".context_data_deserializer" do
-    deserializer = instance_double(ContextDataDeserializer)
+    deserializer = instance_double(Absmartly::ContextDataDeserializer)
     config = described_class.create
     config.context_data_deserializer = deserializer
     expect(config.context_data_deserializer).to eq(deserializer)
   end
 
   it ".context_event_serializer" do
-    serializer = instance_double(ContextEventSerializer)
+    serializer = instance_double(Absmartly::ContextEventSerializer)
     config = described_class.create
     config.context_event_serializer = serializer
     expect(config.context_event_serializer).to eq(serializer)
   end
 
   it ".executor" do
-    deserializer = instance_double(ContextDataDeserializer)
-    serializer = instance_double(ContextEventSerializer)
+    deserializer = instance_double(Absmartly::ContextDataDeserializer)
+    serializer = instance_double(Absmartly::ContextEventSerializer)
     config = described_class.create
     config.endpoint = "https://test.endpoint.com"
     config.api_key = "api-key-test"
@@ -70,8 +70,8 @@ RSpec.describe ClientConfig do
       "absmartly.application": "website"
     }
 
-    deserializer = instance_double(ContextDataDeserializer)
-    serializer = instance_double(ContextEventSerializer)
+    deserializer = instance_double(Absmartly::ContextDataDeserializer)
+    serializer = instance_double(Absmartly::ContextEventSerializer)
     config = described_class.create_from_properties(props, "absmartly.")
     config.context_data_deserializer = deserializer
     config.context_event_serializer = serializer
@@ -115,7 +115,7 @@ RSpec.describe ClientConfig do
       config.max_retries = 3
 
       http_config = config.http_client_config
-      expect(http_config).to be_a(DefaultHttpClientConfig)
+      expect(http_config).to be_a(Absmartly::DefaultHttpClientConfig)
       expect(http_config.connect_timeout).to eq(5.0)
       expect(http_config.connection_request_timeout).to eq(10.0)
       expect(http_config.retry_interval).to eq(1.0)
@@ -126,7 +126,7 @@ RSpec.describe ClientConfig do
       config = described_class.create
 
       http_config = config.http_client_config
-      expect(http_config).to be_a(DefaultHttpClientConfig)
+      expect(http_config).to be_a(Absmartly::DefaultHttpClientConfig)
       expect(http_config.connect_timeout).to eq(3.0)
       expect(http_config.connection_request_timeout).to eq(3.0)
       expect(http_config.retry_interval).to eq(0.5)

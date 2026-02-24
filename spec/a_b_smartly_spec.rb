@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "a_b_smartly"
-require "a_b_smartly_config"
-require "context_data_provider"
-require "context_event_handler"
-require "variable_parser"
-require "context_event_logger"
-require "scheduled_executor_service"
-require "client"
-require "context"
-require "context_config"
+require "absmartly/a_b_smartly"
+require "absmartly/a_b_smartly_config"
+require "absmartly/context_data_provider"
+require "absmartly/context_event_handler"
+require "absmartly/variable_parser"
+require "absmartly/context_event_logger"
+require "absmartly/scheduled_executor_service"
+require "absmartly/client"
+require "absmartly/context"
+require "absmartly/context_config"
 
-RSpec.describe ABSmartly do
-  let(:client) { instance_double(Client) }
+RSpec.describe Absmartly::ABSmartly do
+  let(:client) { instance_double(Absmartly::Client) }
 
   it ".create" do
-    config = ABSmartlyConfig.create
+    config = Absmartly::ABSmartlyConfig.create
     config.client = client
     absmartly = described_class.create(config)
     expect(absmartly).not_to be_nil
@@ -23,13 +23,13 @@ RSpec.describe ABSmartly do
 
   it ".create throws with invalid config" do
     expect {
-      config = ABSmartlyConfig.create
-      ABSmartly.create(config)
+      config = Absmartly::ABSmartlyConfig.create
+      Absmartly::ABSmartly.create(config)
     }.to raise_error(ArgumentError, "Missing Client instance configuration")
   end
 
   it ".create_context" do
-    config = ABSmartlyConfig.create
+    config = Absmartly::ABSmartlyConfig.create
     config.client = client
 
     # data_future = (CompletdawdableFuture<ContextData>) mock(
@@ -38,7 +38,7 @@ RSpec.describe ABSmartly do
     #   DefaultContextDataProvider.class, (mock, context) -> {
     #   when(mock.getContextData()).thenReturn(dataFuture);
     # })) {
-    #   final ABSmartly absmartly = ABSmartly.create(config);
+    #   final ABSmartly absmartly = Absmartly::ABSmartly.create(config);
     # assertEquals(1, dataProviderCtor.constructed().size());
     #
     # try (final MockedStatic<Context> contextStatic = mockStatic(Context.class)) {
@@ -89,13 +89,13 @@ RSpec.describe ABSmartly do
   end
 
   it "createContextWith" do
-    # final ABSmartlyConfig config = ABSmartlyConfig.create()
+    # final Absmartly::ABSmartlyConfig config = Absmartly::ABSmartlyConfig.create()
     #                                               .setClient(client);
     #
     # final ContextData data = new ContextData();
     # try (final MockedConstruction<DefaultContextDataProvider> dataProviderCtor = mockConstruction(
     #   DefaultContextDataProvider.class)) {
-    #   final ABSmartly absmartly = ABSmartly.create(config);
+    #   final ABSmartly absmartly = Absmartly::ABSmartly.create(config);
     #   assertEquals(1, dataProviderCtor.constructed().size());
     #
     #   try (final MockedStatic<Context> contextStatic = mockStatic(Context.class)) {
@@ -152,11 +152,11 @@ RSpec.describe ABSmartly do
     # final ContextDataProvider dataProvider = mock(ContextDataProvider.class);
     # when(dataProvider.getContextData()).thenReturn(dataFuture);
     #
-    # final ABSmartlyConfig config = ABSmartlyConfig.create()
+    # final Absmartly::ABSmartlyConfig config = Absmartly::ABSmartlyConfig.create()
     #                                               .setClient(client)
     #                                               .setContextDataProvider(dataProvider);
     #
-    # final ABSmartly absmartly = ABSmartly.create(config);
+    # final ABSmartly absmartly = Absmartly::ABSmartly.create(config);
     #
     # final CompletableFuture<ContextData> contextDataFuture = absmartly.getContextData();
     # verify(dataProvider, times(1)).getContextData();
@@ -175,7 +175,7 @@ RSpec.describe ABSmartly do
     # final AudienceDeserializer audienceDeserializer = mock(AudienceDeserializer.class);
     # final VariableParser variableParser = mock(VariableParser.class);
     #
-    # final ABSmartlyConfig config = ABSmartlyConfig.create()
+    # final Absmartly::ABSmartlyConfig config = Absmartly::ABSmartlyConfig.create()
     #                                               .setClient(client)
     #                                               .setContextDataProvider(dataProvider)
     #                                               .setContextEventHandler(eventHandler)
@@ -184,7 +184,7 @@ RSpec.describe ABSmartly do
     #                                               .setAudienceDeserializer(audienceDeserializer)
     #                                               .setVariableParser(variableParser);
     #
-    # final ABSmartly absmartly = ABSmartly.create(config);
+    # final ABSmartly absmartly = Absmartly::ABSmartly.create(config);
     #
     # try (final MockedStatic<Context> contextStatic = mockStatic(Context.class);
     # final MockedConstruction<AudienceMatcher> audienceMatcherCtor = mockConstruction(AudienceMatcher.class,
@@ -237,11 +237,11 @@ RSpec.describe ABSmartly do
   it "close" do
     # final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     #
-    # final ABSmartlyConfig config = ABSmartlyConfig.create()
+    # final Absmartly::ABSmartlyConfig config = Absmartly::ABSmartlyConfig.create()
     #                                               .setClient(client)
     #                                               .setScheduler(scheduler);
     #
-    # final ABSmartly absmartly = ABSmartly.create(config);
+    # final ABSmartly absmartly = Absmartly::ABSmartly.create(config);
     #
     # try (final MockedStatic<Context> contextStatic = mockStatic(Context.class)) {
     #   final Context contextMock = mock(Context.class);
