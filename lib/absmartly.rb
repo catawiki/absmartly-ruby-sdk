@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "absmartly/version"
-require_relative "a_b_smartly"
-require_relative "a_b_smartly_config"
-require_relative "client"
-require_relative "client_config"
-require_relative "context_config"
+require_relative "absmartly/a_b_smartly"
+require_relative "absmartly/a_b_smartly_config"
+require_relative "absmartly/client"
+require_relative "absmartly/client_config"
+require_relative "absmartly/context_config"
 
 module Absmartly
   class Error < StandardError

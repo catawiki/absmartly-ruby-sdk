@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "./shared_operator"
-require "json_expr/operators/or_combinator"
+require "absmartly/json_expr/operators/or_combinator"
 
-RSpec.describe OrCombinator do
+RSpec.describe Absmartly::OrCombinator do
   include_examples "shared operator"
 
   let(:combinator) { described_class.new }

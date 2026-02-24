@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "default_http_client"
-require "default_http_client_config"
+require "absmartly/default_http_client"
+require "absmartly/default_http_client_config"
 
-RSpec.describe DefaultHttpClient do
+RSpec.describe Absmartly::DefaultHttpClient do
   describe "#initialize" do
     it "configures Faraday with custom pool_size" do
-      config = DefaultHttpClientConfig.create
+      config = Absmartly::DefaultHttpClientConfig.create
       config.pool_size = 42
 
       expect_any_instance_of(Faraday::Connection).to receive(:adapter)
@@ -17,7 +17,7 @@ RSpec.describe DefaultHttpClient do
     end
 
     it "configures Faraday with custom pool_idle_timeout" do
-      config = DefaultHttpClientConfig.create
+      config = Absmartly::DefaultHttpClientConfig.create
       config.pool_idle_timeout = 15
 
       block_called = false
@@ -38,7 +38,7 @@ RSpec.describe DefaultHttpClient do
     end
 
     it "uses default pool_size of 20" do
-      config = DefaultHttpClientConfig.create
+      config = Absmartly::DefaultHttpClientConfig.create
 
       expect_any_instance_of(Faraday::Connection).to receive(:adapter)
         .with(:net_http_persistent, pool_size: 20)
@@ -48,7 +48,7 @@ RSpec.describe DefaultHttpClient do
     end
 
     it "uses default pool_idle_timeout of 5" do
-      config = DefaultHttpClientConfig.create
+      config = Absmartly::DefaultHttpClientConfig.create
 
       block_called = false
       idle_timeout_value = nil
@@ -68,7 +68,7 @@ RSpec.describe DefaultHttpClient do
     end
 
     it "uses the net_http_persistent adapter" do
-      config = DefaultHttpClientConfig.create
+      config = Absmartly::DefaultHttpClientConfig.create
       client = described_class.create(config)
       adapter = client.session.builder.adapter
 

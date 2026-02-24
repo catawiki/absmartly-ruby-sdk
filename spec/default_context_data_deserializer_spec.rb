@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require "default_context_data_deserializer"
-require "context"
-require "client"
-require "json/context_data"
-require "json/publish_event"
-require "json/experiment"
-require "json/experiment_application"
-require "json/experiment_variant"
+require "absmartly/default_context_data_deserializer"
+require "absmartly/context"
+require "absmartly/client"
+require "absmartly/json/context_data"
+require "absmartly/json/publish_event"
+require "absmartly/json/experiment"
+require "absmartly/json/experiment_application"
+require "absmartly/json/experiment_variant"
 
-RSpec.describe DefaultContextDataDeserializer do
+RSpec.describe Absmartly::DefaultContextDataDeserializer do
   it ".deserialize" do
     string = resource("context.json")
     deser = described_class.new
     data = deser.deserialize(string, 0, string.length)
 
-    experiment0 = Experiment.new
+    experiment0 = Absmartly::Experiment.new
     experiment0.id = 1
     experiment0.name = "exp_test_ab"
     experiment0.unit_type = "session_id"
@@ -27,19 +27,19 @@ RSpec.describe DefaultContextDataDeserializer do
     experiment0.traffic_seed_lo = 455443629
     experiment0.traffic_split = [0.0, 1.0]
     experiment0.full_on_variant = 0
-    experiment0.applications = [ExperimentApplication.new("website")]
+    experiment0.applications = [Absmartly::ExperimentApplication.new("website")]
     experiment0.variants = [
-      ExperimentVariant.new("A", nil),
-      ExperimentVariant.new("B", "{\"banner.border\":1,\"banner.size\":\"large\"}")
+      Absmartly::ExperimentVariant.new("A", nil),
+      Absmartly::ExperimentVariant.new("B", "{\"banner.border\":1,\"banner.size\":\"large\"}")
     ]
     experiment0.custom_field_values = [
-      CustomFieldValue.new("country", "US,PT,ES,DE,FR", "string"),
-      CustomFieldValue.new("overrides", "{\"123\":1,\"456\":0}", "json"),
+      Absmartly::CustomFieldValue.new("country", "US,PT,ES,DE,FR", "string"),
+      Absmartly::CustomFieldValue.new("overrides", "{\"123\":1,\"456\":0}", "json"),
     ]
     experiment0.audience_strict = false
     experiment0.audience = nil
 
-    experiment1 = Experiment.new
+    experiment1 = Absmartly::Experiment.new
     experiment1.id = 2
     experiment1.name = "exp_test_abc"
     experiment1.unit_type = "session_id"
@@ -51,20 +51,20 @@ RSpec.describe DefaultContextDataDeserializer do
     experiment1.traffic_seed_lo = 212903484
     experiment1.traffic_split = [0.0, 1.0]
     experiment1.full_on_variant = 0
-    experiment1.applications = [ExperimentApplication.new("website")]
+    experiment1.applications = [Absmartly::ExperimentApplication.new("website")]
     experiment1.variants = [
-      ExperimentVariant.new("A", nil),
-      ExperimentVariant.new("B", "{\"button.color\":\"blue\"}"),
-      ExperimentVariant.new("C", "{\"button.color\":\"red\"}")
+      Absmartly::ExperimentVariant.new("A", nil),
+      Absmartly::ExperimentVariant.new("B", "{\"button.color\":\"blue\"}"),
+      Absmartly::ExperimentVariant.new("C", "{\"button.color\":\"red\"}")
     ]
     experiment1.custom_field_values = [
-      CustomFieldValue.new("country", "US,PT,ES,DE,FR", "string"),
-      CustomFieldValue.new("languages", "en-US,en-GB,pt-PT,pt-BR,es-ES,es-MX", "string"),
+      Absmartly::CustomFieldValue.new("country", "US,PT,ES,DE,FR", "string"),
+      Absmartly::CustomFieldValue.new("languages", "en-US,en-GB,pt-PT,pt-BR,es-ES,es-MX", "string"),
     ]
     experiment1.audience_strict = false
     experiment1.audience = ""
 
-    experiment2 = Experiment.new
+    experiment2 = Absmartly::Experiment.new
     experiment2.id = 3
     experiment2.name = "exp_test_not_eligible"
     experiment2.unit_type = "user_id"
@@ -76,16 +76,16 @@ RSpec.describe DefaultContextDataDeserializer do
     experiment2.traffic_seed_lo = 511357582
     experiment2.traffic_split = [0.99, 0.01]
     experiment2.full_on_variant = 0
-    experiment2.applications = [ExperimentApplication.new("website")]
+    experiment2.applications = [Absmartly::ExperimentApplication.new("website")]
     experiment2.variants = [
-      ExperimentVariant.new("A", nil),
-      ExperimentVariant.new("B", "{\"card.width\":\"80%\"}"),
-      ExperimentVariant.new("C", "{\"card.width\":\"75%\"}")
+      Absmartly::ExperimentVariant.new("A", nil),
+      Absmartly::ExperimentVariant.new("B", "{\"card.width\":\"80%\"}"),
+      Absmartly::ExperimentVariant.new("C", "{\"card.width\":\"75%\"}")
     ]
     experiment2.audience_strict = false
     experiment2.audience = "{}"
 
-    experiment3 = Experiment.new
+    experiment3 = Absmartly::Experiment.new
     experiment3.id = 4
     experiment3.name = "exp_test_fullon"
     experiment3.unit_type = "session_id"
@@ -97,17 +97,17 @@ RSpec.describe DefaultContextDataDeserializer do
     experiment3.traffic_seed_lo = 330937933
     experiment3.traffic_split = [0.0, 1.0]
     experiment3.full_on_variant = 2
-    experiment3.applications = [ExperimentApplication.new("website")]
+    experiment3.applications = [Absmartly::ExperimentApplication.new("website")]
     experiment3.variants = [
-      ExperimentVariant.new("A", nil),
-      ExperimentVariant.new("B", "{\"submit.color\":\"red\",\"submit.shape\":\"circle\"}"),
-      ExperimentVariant.new("C", "{\"submit.color\":\"blue\",\"submit.shape\":\"rect\"}"),
-      ExperimentVariant.new("D", "{\"submit.color\":\"green\",\"submit.shape\":\"square\"}")
+      Absmartly::ExperimentVariant.new("A", nil),
+      Absmartly::ExperimentVariant.new("B", "{\"submit.color\":\"red\",\"submit.shape\":\"circle\"}"),
+      Absmartly::ExperimentVariant.new("C", "{\"submit.color\":\"blue\",\"submit.shape\":\"rect\"}"),
+      Absmartly::ExperimentVariant.new("D", "{\"submit.color\":\"green\",\"submit.shape\":\"square\"}")
     ]
     experiment3.audience_strict = false
     experiment3.audience = "null"
 
-    expected = ContextData.new
+    expected = Absmartly::ContextData.new
     expected.experiments = [
       experiment0,
       experiment1,
