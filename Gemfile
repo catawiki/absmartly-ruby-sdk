@@ -17,6 +17,6 @@ end
 
 group :develop do
   gem "irb"
-  gem "byebug"
+  gem "debug", require: false
   gem "rubocop", "~> 1.21"
 end
